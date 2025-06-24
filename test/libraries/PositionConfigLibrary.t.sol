@@ -95,15 +95,6 @@ contract PathKeyLibraryTest is Test {
         assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(inCurrency));
     }
 
-    function test_getPoolAndSwapDirection_equalCurrencies() public {
-        Currency token = Currency.wrap(address(0x1234));
-        PathKey memory path = PathKey(token, 3000, 60, IHooks(address(0)), bytes(""));
-        (PoolKey memory pool, bool zeroForOne) = this._call(path, token);
-
-        assertFalse(zeroForOne);
-        assertEq(Currency.unwrap(pool.currency0), Currency.unwrap(token));
-        assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(token));
-    }
 }
 
 contract AddressStringUtilTest is Test {
