@@ -610,6 +610,30 @@ contract IncreaseLiquidityTest is Test, PosmTestSetup, Fuzzers {
         lpm.modifyLiquidities(calls, _deadline);
     }
 
+    /// @notice Slippage checks still enforce limits when fees exceed deposit
+    function test_increaseLiquidity_slippage_feesExceedDeposit() public {
+        uint256 tokenId = lpm.nextTokenId();
+        mint(config, 100e18, ActionConstants.MSG_SENDER, ZERO_BYTES);
+
+        // donate fees greater than required deposit
+        uint256 donateAmount = 20e18;
+        donateRouter.donate(key, donateAmount, donateAmount, ZERO_BYTES);
+
+        uint128 newLiquidity = 10e18;
+        (uint256 amount0, uint256 amount1) = LiquidityAmounts.getAmountsForLiquidity(
+            SQRT_PRICE_1_1,
+            TickMath.getSqrtPriceAtTick(config.tickLower),
+            TickMath.getSqrtPriceAtTick(config.tickUpper),
+            newLiquidity
+        );
+
+        bytes memory calls = getIncreaseEncoded(tokenId, config, newLiquidity, 1 wei, 1 wei, ZERO_BYTES);
+        vm.expectRevert(
+            abi.encodeWithSelector(SlippageCheck.MaximumAmountExceeded.selector, 1 wei, amount0 + 1)
+        );
+        lpm.modifyLiquidities(calls, _deadline);
+    }
+
     function test_mint_settleWithBalance_andSweepToOtherAddress() public {
         uint256 liquidityAlice = 3_000e18;
 
