@@ -3,10 +3,7 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import {SafeCurrencyMetadata} from "../../src/libraries/SafeCurrencyMetadata.sol";
-import {MockNoSymbol} from "./MockNoSymbol.sol";
-import {MockBytes32Symbol} from "./MockBytes32Symbol.sol";
-import {MockLongSymbol} from "./MockLongSymbol.sol";
-import {MockBadDecimals} from "./MockBadDecimals.sol";
+
 import {AddressStringUtil} from "../../src/libraries/AddressStringUtil.sol";
 
 contract SafeCurrencyMetadataTest is Test {
@@ -46,5 +43,55 @@ contract SafeCurrencyMetadataTest is Test {
     function test_currencyDecimals_bad() public {
         MockBadDecimals token = new MockBadDecimals();
         assertEq(SafeCurrencyMetadata.currencyDecimals(address(token)), 0);
+    }
+}
+
+contract MockToken {
+    string public symbolReturn;
+    uint256 public decimalsReturn;
+    bool public revertSymbol;
+    bool public revertDecimals;
+    constructor(string memory s, uint256 d, bool rS, bool rD) {
+        symbolReturn = s;
+        decimalsReturn = d;
+        revertSymbol = rS;
+        revertDecimals = rD;
+    }
+    function symbol() external view returns (string memory) {
+        if (revertSymbol) revert();
+        return symbolReturn;
+    }
+    function decimals() external view returns (uint256) {
+        if (revertDecimals) revert();
+        return decimalsReturn;
+    }
+}
+
+contract SafeCurrencyMetadataExtraTest is Test {
+
+    function test_currencySymbol_fallback() public {
+        MockToken t = new MockToken("", 18, true, false);
+        string memory expected = AddressStringUtil.toAsciiString(address(t), 6);
+        assertEq(SafeCurrencyMetadata.currencySymbol(address(t), "N"), expected);
+    }
+
+    function test_currencySymbol_truncate() public {
+        MockToken t = new MockToken("ABCDEFGHIJKLMNO", 18, false, false);
+        assertEq(SafeCurrencyMetadata.currencySymbol(address(t), "N"), "ABCDEFGHIJKL");
+    }
+
+    function test_currencyDecimals_standard() public {
+        MockToken t = new MockToken("ABC", 18, false, false);
+        assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 18);
+    }
+
+    function test_currencyDecimals_overflow() public {
+        MockToken t = new MockToken("ABC", 300, false, false);
+        assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 0);
+    }
+
+    function test_currencyDecimals_revert() public {
+        MockToken t = new MockToken("ABC", 18, false, true);
+        assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 0);
     }
 }
