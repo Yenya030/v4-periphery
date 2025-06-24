@@ -30,15 +30,17 @@ contract PositionConfigLibraryTest is Test {
         });
 
         bytes32 result = this._calcId(config);
-        bytes32 expected = keccak256(abi.encodePacked(
-            config.poolKey.currency0,
-            config.poolKey.currency1,
-            config.poolKey.fee,
-            config.poolKey.tickSpacing,
-            config.poolKey.hooks,
-            config.tickLower,
-            config.tickUpper
-        )) >> 1;
+        bytes32 expected = keccak256(
+            abi.encodePacked(
+                config.poolKey.currency0,
+                config.poolKey.currency1,
+                config.poolKey.fee,
+                config.poolKey.tickSpacing,
+                config.poolKey.hooks,
+                config.tickLower,
+                config.tickUpper
+            )
+        ) >> 1;
 
         assertEq(result, expected);
     }
@@ -91,6 +93,16 @@ contract PathKeyLibraryTest is Test {
         assertFalse(zeroForOne);
         assertEq(Currency.unwrap(pool.currency0), Currency.unwrap(outCurrency));
         assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(inCurrency));
+    }
+
+    function test_getPoolAndSwapDirection_equalCurrencies() public {
+        Currency token = Currency.wrap(address(0x1234));
+        PathKey memory path = PathKey(token, 3000, 60, IHooks(address(0)), bytes(""));
+        (PoolKey memory pool, bool zeroForOne) = this._call(path, token);
+
+        assertFalse(zeroForOne);
+        assertEq(Currency.unwrap(pool.currency0), Currency.unwrap(token));
+        assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(token));
     }
 }
 
