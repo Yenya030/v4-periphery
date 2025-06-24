@@ -54,4 +54,41 @@ contract DescriptorTest is Test {
         result = SVG.substring("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", 39, 42);
         assertEq(result, "Cc2");
     }
+
+    function test_getCurve_boundaries() public pure {
+        assertEq(SVG.getCurve(0, 4, 1), "M1 1C41 41 105 105 145 145");
+        assertEq(SVG.getCurve(0, 8, 1), "M1 1C33 49 97 113 145 145");
+        assertEq(SVG.getCurve(0, 16, 1), "M1 1C33 57 89 113 145 145");
+        assertEq(SVG.getCurve(0, 32, 1), "M1 1C25 65 81 121 145 145");
+        assertEq(SVG.getCurve(0, 64, 1), "M1 1C17 73 73 129 145 145");
+        assertEq(SVG.getCurve(0, 128, 1), "M1 1C9 81 65 137 145 145");
+        assertEq(SVG.getCurve(0, 256, 1), "M1 1C1 89 57.5 145 145 145");
+        assertEq(SVG.getCurve(0, 300, 1), "M1 1C1 97 49 145 145 145");
+    }
+
+    function test_generateSVGCurveCircle_variants() public pure {
+        string memory expectedInRange = string(
+            abi.encodePacked(
+                '<circle cx="73px" cy="190px" r="4px" fill="white" />',
+                '<circle cx="217px" cy="334px" r="4px" fill="white" />'
+            )
+        );
+        assertEq(SVG.generateSVGCurveCircle(0), expectedInRange);
+
+        string memory expectedUnder = string(
+            abi.encodePacked(
+                '<circle cx="73px" cy="190px" r="4px" fill="white" />',
+                '<circle cx="73px" cy="190px" r="24px" fill="none" stroke="white" />'
+            )
+        );
+        assertEq(SVG.generateSVGCurveCircle(-1), expectedUnder);
+
+        string memory expectedOver = string(
+            abi.encodePacked(
+                '<circle cx="217px" cy="334px" r="4px" fill="white" />',
+                '<circle cx="217px" cy="334px" r="24px" fill="none" stroke="white" />'
+            )
+        );
+        assertEq(SVG.generateSVGCurveCircle(1), expectedOver);
+    }
 }

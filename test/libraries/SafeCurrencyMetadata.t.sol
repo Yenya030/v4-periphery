@@ -65,4 +65,12 @@ contract SafeCurrencyMetadataExtraTest is Test {
         MockToken t = new MockToken("ABC", 18, false, true);
         assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 0);
     }
+
+    function test_currencySymbol_native() public {
+        assertEq(SafeCurrencyMetadata.currencySymbol(address(0), "ETH"), "ETH");
+    }
+
+    function test_currencyDecimals_native() public {
+        assertEq(SafeCurrencyMetadata.currencyDecimals(address(0)), 18);
+    }
 }
