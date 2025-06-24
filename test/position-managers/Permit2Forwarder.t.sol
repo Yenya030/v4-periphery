@@ -10,6 +10,7 @@ import {IAllowanceTransfer} from "permit2/src/interfaces/IAllowanceTransfer.sol"
 import {PosmTestSetup} from "../shared/PosmTestSetup.sol";
 import {Permit2Forwarder} from "../../src/base/Permit2Forwarder.sol";
 import {Permit2SignatureHelpers} from "../shared/Permit2SignatureHelpers.sol";
+import {RevertingPermit2} from "../mocks/RevertingPermit2.sol";
 
 contract Permit2ForwarderTest is Test, PosmTestSetup, Permit2SignatureHelpers {
     Permit2Forwarder permit2Forwarder;
@@ -71,5 +72,28 @@ contract Permit2ForwarderTest is Test, PosmTestSetup, Permit2SignatureHelpers {
         assertEq(_amount1, amount0);
         assertEq(_expiration1, expiration);
         assertEq(_nonce1, nonce + 1);
+    }
+
+    function test_permit_single_returns_error_on_revert() public {
+        RevertingPermit2 badPermit2 = new RevertingPermit2();
+        Permit2Forwarder forwarder = new Permit2Forwarder(badPermit2);
+        IAllowanceTransfer.PermitSingle memory permit =
+            defaultERC20PermitAllowance(Currency.unwrap(currency0), amount0, expiration, nonce);
+        bytes memory sig = getPermitSignature(permit, alicePrivateKey, PERMIT2_DOMAIN_SEPARATOR);
+        bytes memory err = forwarder.permit(alice, permit, sig);
+        assertEq(err, abi.encodeWithSignature("Error(string)", "mock revert"));
+    }
+
+    function test_permit_batch_returns_error_on_revert() public {
+        RevertingPermit2 badPermit2 = new RevertingPermit2();
+        Permit2Forwarder forwarder = new Permit2Forwarder(badPermit2);
+        address[] memory tokens = new address[](2);
+        tokens[0] = Currency.unwrap(currency0);
+        tokens[1] = Currency.unwrap(currency1);
+        IAllowanceTransfer.PermitBatch memory permit =
+            defaultERC20PermitBatchAllowance(tokens, amount0, expiration, nonce);
+        bytes memory sig = getPermitBatchSignature(permit, alicePrivateKey, PERMIT2_DOMAIN_SEPARATOR);
+        bytes memory err = forwarder.permitBatch(alice, permit, sig);
+        assertEq(err, abi.encodeWithSignature("Error(string)", "mock revert"));
     }
 }
