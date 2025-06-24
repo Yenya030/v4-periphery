@@ -894,6 +894,14 @@ contract PositionManagerTest is Test, PosmTestSetup, LiquidityFuzzers {
         assertEq(lpFee, fee);
     }
 
+    function test_initialize_returnMax_whenReinitialized() public {
+        key = PoolKey({currency0: currency0, currency1: currency1, fee: 0, tickSpacing: 10, hooks: IHooks(address(0))});
+        lpm.initializePool(key, SQRT_PRICE_1_1);
+
+        int24 result = lpm.initializePool(key, SQRT_PRICE_1_1);
+        assertEq(result, type(int24).max);
+    }
+
     // tests a decrease and take in both currencies
     // does not use take pair, so its less optimal
     function test_decrease_take() public {
