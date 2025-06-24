@@ -19,6 +19,7 @@ import {Plan, Planner} from "../shared/Planner.sol";
 import {Actions} from "../../src/libraries/Actions.sol";
 import {INotifier} from "../../src/interfaces/INotifier.sol";
 import {MockReturnDataSubscriber, MockRevertSubscriber} from "../mocks/MockBadSubscribers.sol";
+import {MockBurnRevertSubscriber} from "../mocks/MockBurnRevertSubscriber.sol";
 import {PositionInfo} from "../../src/libraries/PositionInfoLibrary.sol";
 import {MockReenterHook} from "../mocks/MockReenterHook.sol";
 import {IERC721} from "forge-std/interfaces/IERC721.sol";
@@ -30,6 +31,7 @@ contract PositionManagerNotifierTest is Test, PosmTestSetup {
     MockReturnDataSubscriber badSubscriber;
     PositionConfig config;
     MockRevertSubscriber revertSubscriber;
+    MockBurnRevertSubscriber burnRevertSubscriber;
     MockReenterHook reenterHook;
 
     address alice = makeAddr("ALICE");
@@ -49,6 +51,7 @@ contract PositionManagerNotifierTest is Test, PosmTestSetup {
         sub = new MockSubscriber(lpm);
         badSubscriber = new MockReturnDataSubscriber(lpm);
         revertSubscriber = new MockRevertSubscriber(lpm);
+        burnRevertSubscriber = new MockBurnRevertSubscriber(lpm);
         config = PositionConfig({poolKey: key, tickLower: -300, tickUpper: 300});
 
         // set the reenter hook
@@ -586,6 +589,28 @@ contract PositionManagerNotifierTest is Test, PosmTestSetup {
         assertEq(lpm.positionInfo(tokenId).hasSubscriber(), false);
         assertEq(sub.notifyUnsubscribeCount(), 0);
         assertEq(sub.notifyBurnCount(), 1);
+    }
+
+    function test_notifyBurn_wraps_revert() public {
+        uint256 tokenId = lpm.nextTokenId();
+        mint(config, 100e18, alice, ZERO_BYTES);
+
+        vm.startPrank(alice);
+        IERC721(address(lpm)).approve(address(this), tokenId);
+        vm.stopPrank();
+
+        lpm.subscribe(tokenId, address(burnRevertSubscriber), "");
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CustomRevert.WrappedError.selector,
+                address(burnRevertSubscriber),
+                ISubscriber.notifyBurn.selector,
+                abi.encodeWithSignature("Error(string)", "notifyBurn"),
+                abi.encodeWithSelector(INotifier.BurnNotificationReverted.selector)
+            )
+        );
+        burn(tokenId, config, "");
     }
 
     /// @notice Test that users cannot forcibly avoid unsubscribe logic via gas limits
