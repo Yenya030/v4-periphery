@@ -146,4 +146,11 @@ contract BaseActionsRouterTest is Test, Deployers {
             assertEq(mappedRecipient, recipient);
         }
     }
+
+    function test_mapPayer() public view {
+        // when payerIsUser=true should return msgSender()
+        assertEq(router.mapPayer(true), address(0xdeadbeef));
+        // when false should return address(this)
+        assertEq(router.mapPayer(false), address(router));
+    }
 }
