@@ -69,6 +69,13 @@ contract DeltaResolverMapWrapUnwrapTest is Test {
         assertEq(amount, 7);
     }
 
+    function test_openDelta_revertsInsufficientBalance() public {
+        manager.setDelta(address(harness), tokenCurrency, -10);
+        token.mint(address(harness), 5);
+        vm.expectRevert(DeltaResolver.InsufficientBalance.selector);
+        harness.expose_mapWrapUnwrapAmount(tokenCurrency, ActionConstants.OPEN_DELTA, tokenCurrency);
+    }
+
     function test_revertInsufficientBalance() public {
         token.mint(address(harness), 5);
         vm.expectRevert(DeltaResolver.InsufficientBalance.selector);
