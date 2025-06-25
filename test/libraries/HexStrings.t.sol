@@ -14,4 +14,9 @@ contract HexStringsTest is Test {
         string memory hexStr = HexStrings.toHexStringNoPrefix(0x1, 2);
         assertEq(hexStr, "0001");
     }
+
+    function test_toHexStringNoPrefix_truncates_excess() public pure {
+        string memory hexStr = HexStrings.toHexStringNoPrefix(0x123456, 2);
+        assertEq(hexStr, "3456");
+    }
 }
