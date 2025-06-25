@@ -5,6 +5,7 @@ import {MockBaseActionsRouter} from "./mocks/MockBaseActionsRouter.sol";
 import {Planner, Plan} from "./shared/Planner.sol";
 import {Actions} from "../src/libraries/Actions.sol";
 import {ActionConstants} from "../src/libraries/ActionConstants.sol";
+import {BaseActionsRouter} from "../src/base/BaseActionsRouter.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {Test} from "forge-std/Test.sol";
 import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
@@ -152,5 +153,23 @@ contract BaseActionsRouterTest is Test, Deployers {
         assertEq(router.mapPayer(true), address(0xdeadbeef));
         // when false should return address(this)
         assertEq(router.mapPayer(false), address(router));
+    }
+
+    function test_executeActions_inputLengthMismatch_reverts() public {
+        bytes memory actions = hex"01"; // one DECREASE_LIQUIDITY action
+        bytes[] memory params = new bytes[](0); // no params
+
+        bytes memory data = abi.encode(actions, params);
+
+        vm.expectRevert(BaseActionsRouter.InputLengthMismatch.selector);
+        router.executeActions(data);
+    }
+
+    function test_executeActions_unsupportedAction_reverts() public {
+        Plan memory plan = Planner.init();
+        plan.add(0xff, ""); // invalid action id
+
+        vm.expectRevert(abi.encodeWithSelector(BaseActionsRouter.UnsupportedAction.selector, uint256(0xff)));
+        router.executeActions(plan.encode());
     }
 }
