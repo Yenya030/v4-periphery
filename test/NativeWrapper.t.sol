@@ -69,4 +69,9 @@ contract NativeWrapperTest is Test {
         vm.expectRevert();
         wrapper.wrap{value: 0}(1 ether);
     }
+
+    function test_unwrap_insufficient_balance_reverts() public {
+        vm.expectRevert();
+        wrapper.unwrap(1 ether);
+    }
 }
