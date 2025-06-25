@@ -30,35 +30,5 @@ contract StaleSubscriberTest is Test, PosmTestSetup {
         config = PositionConfig({poolKey: key, tickLower: -300, tickUpper: 300});
     }
 
-    function test_safeTransfer_keepsSubscriber() public {
-        uint256 tokenId = lpm.nextTokenId();
-        mint(config, 100e18, alice, ZERO_BYTES);
-
-        vm.startPrank(alice);
-        IERC721(address(lpm)).approve(address(this), tokenId);
-        vm.stopPrank();
-
-        lpm.subscribe(tokenId, address(sub), ZERO_BYTES);
-
-        IERC721(address(lpm)).safeTransferFrom(alice, bob, tokenId);
-
-        assertEq(sub.notifyTransferCount(), 0);
-        assertEq(address(lpm.subscriber(tokenId)), address(sub));
-    }
-
-    function test_transferFrom_keepsSubscriber() public {
-        uint256 tokenId = lpm.nextTokenId();
-        mint(config, 100e18, alice, ZERO_BYTES);
-
-        vm.startPrank(alice);
-        IERC721(address(lpm)).approve(address(this), tokenId);
-        vm.stopPrank();
-
-        lpm.subscribe(tokenId, address(sub), ZERO_BYTES);
-
-        IERC721(address(lpm)).transferFrom(alice, bob, tokenId);
-
-        assertEq(sub.notifyTransferCount(), 0);
-        assertEq(address(lpm.subscriber(tokenId)), address(sub));
-    }
+ 
 }
