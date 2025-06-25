@@ -6,6 +6,7 @@ import {NotifierHarness} from "./mocks/NotifierHarness.sol";
 import {SimpleSubscriber} from "./mocks/SimpleSubscriber.sol";
 import {SimpleRevertSubscriber} from "./mocks/SimpleRevertSubscriber.sol";
 import {INotifier} from "../src/interfaces/INotifier.sol";
+import {ISubscriber} from "../src/interfaces/ISubscriber.sol";
 import {PositionInfo} from "../src/libraries/PositionInfoLibrary.sol";
 import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 
@@ -33,6 +34,14 @@ contract NotifierHarnessTest is Test {
         assertEq(sub.unsubscribeCount(), 1);
     }
 
+    function test_callWrap_success() public {
+        SimpleSubscriber sub = new SimpleSubscriber();
+        bytes memory data = abi.encodeCall(ISubscriber.notifySubscribe, (1, ""));
+        bool success = harness.callWrap(address(sub), data);
+        assertTrue(success);
+        assertEq(sub.subscribeCount(), 1);
+    }
+
     function test_removeSubscriberAndNotifyBurn() public {
         SimpleSubscriber sub = new SimpleSubscriber();
         harness.subscribe(2, address(sub), "");
@@ -46,5 +55,12 @@ contract NotifierHarnessTest is Test {
         harness.subscribe(3, address(sub), "");
         vm.expectRevert();
         harness.notifyModifyLiquidityWrap(3, 1, BalanceDelta.wrap(0));
+    }
+
+    function test_notifyModifyLiquidity_success() public {
+        SimpleSubscriber sub = new SimpleSubscriber();
+        harness.subscribe(4, address(sub), "");
+        harness.notifyModifyLiquidityWrap(4, 1, BalanceDelta.wrap(0));
+        assertEq(sub.modifyCount(), 1);
     }
 }
