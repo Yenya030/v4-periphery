@@ -37,4 +37,8 @@ contract LockerTest is Test {
         address result = harness.setAndReturn(address(0xCAFE));
         assertEq(result, address(0xCAFE));
     }
+
+    function test_get_without_set_returns_zero() public {
+        assertEq(harness.getLocker(), address(0));
+    }
 }
