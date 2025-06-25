@@ -124,4 +124,23 @@ contract AddressStringUtilTest is Test {
             assertEq(b[2 * i + 1], charRef(byteVal & 0xf));
         }
     }
+
+    function test_invalid_length_zero() public {
+        vm.expectRevert(abi.encodeWithSelector(AddressStringUtil.InvalidAddressLength.selector, 0));
+        this._call(address(0), 0);
+    }
+
+    function test_toAsciiString_truncated() public {
+        address addr = 0x1234567890AbcdEF1234567890aBcdef12345678;
+        string memory s = AddressStringUtil.toAsciiString(addr, 6);
+        bytes memory b = bytes(s);
+        assertEq(b.length, 6);
+
+        uint256 num = uint256(uint160(addr));
+        for (uint256 i = 0; i < 3; i++) {
+            uint8 byteVal = uint8(num >> (8 * (19 - i)));
+            assertEq(b[2 * i], charRef(byteVal >> 4));
+            assertEq(b[2 * i + 1], charRef(byteVal & 0xf));
+        }
+    }
 }
