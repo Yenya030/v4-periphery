@@ -57,4 +57,21 @@ contract NativeWrapperTest is Test {
         vm.deal(address(manager), 1 ether);
         manager.sendEther{value: 1 ether}(payable(address(wrapper)));
     }
+
+    function test_wrap_deposits_weth() public {
+        vm.deal(address(this), 1 ether);
+        uint256 beforeWeth = weth.balanceOf(address(wrapper));
+        wrapper.wrap{value: 1 ether}(1 ether);
+        assertEq(weth.balanceOf(address(wrapper)) - beforeWeth, 1 ether);
+    }
+
+    function test_unwrap_withdraws_weth() public {
+        vm.deal(address(this), 2 ether);
+        wrapper.wrap{value: 2 ether}(2 ether);
+        uint256 beforeWeth = weth.balanceOf(address(wrapper));
+        uint256 beforeEth = address(wrapper).balance;
+        wrapper.unwrap(1 ether);
+        assertEq(beforeWeth - weth.balanceOf(address(wrapper)), 1 ether);
+        assertEq(address(wrapper).balance - beforeEth, 1 ether);
+    }
 }
