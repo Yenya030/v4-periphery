@@ -34,6 +34,15 @@ contract NotifierHarnessTest is Test {
         assertEq(sub.unsubscribeCount(), 1);
     }
 
+    function test_unsubscribe_gas_limit_reverts() public {
+        SimpleSubscriber sub = new SimpleSubscriber();
+        harness.subscribe(5, address(sub), "");
+        uint256 gasLimit = harness.unsubscribeGasLimit();
+        vm.expectRevert(INotifier.GasLimitTooLow.selector);
+        harness.unsubscribeWrap{gas: gasLimit - 1}(5);
+        assertEq(address(harness.subscriber(5)), address(sub));
+    }
+
     function test_callWrap_success() public {
         SimpleSubscriber sub = new SimpleSubscriber();
         bytes memory data = abi.encodeCall(ISubscriber.notifySubscribe, (1, ""));
