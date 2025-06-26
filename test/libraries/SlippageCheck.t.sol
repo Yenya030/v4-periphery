@@ -10,6 +10,7 @@ contract SlippageHarness {
     function callValidateMaxIn(BalanceDelta delta, uint128 max0, uint128 max1) external pure {
         SlippageCheck.validateMaxIn(delta, max0, max1);
     }
+
     function callValidateMinOut(BalanceDelta delta, uint128 min0, uint128 min1) external pure {
         SlippageCheck.validateMinOut(delta, min0, min1);
     }
@@ -48,5 +49,20 @@ contract SlippageCheckTest is Test {
         BalanceDelta delta = toBalanceDelta(5, 6);
         harness.callValidateMinOut(delta, 5, 6);
     }
-}
 
+    function test_validateMinOut_revert_amount0() public {
+        BalanceDelta delta = toBalanceDelta(4, 10);
+        vm.expectRevert(
+            abi.encodeWithSelector(SlippageCheck.MinimumAmountInsufficient.selector, uint128(5), uint128(4))
+        );
+        harness.callValidateMinOut(delta, 5, 9);
+    }
+
+    function test_validateMinOut_revert_amount1() public {
+        BalanceDelta delta = toBalanceDelta(10, 2);
+        vm.expectRevert(
+            abi.encodeWithSelector(SlippageCheck.MinimumAmountInsufficient.selector, uint128(3), uint128(2))
+        );
+        harness.callValidateMinOut(delta, 9, 3);
+    }
+}
