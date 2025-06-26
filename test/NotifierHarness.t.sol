@@ -72,4 +72,17 @@ contract NotifierHarnessTest is Test {
         harness.notifyModifyLiquidityWrap(4, 1, BalanceDelta.wrap(0));
         assertEq(sub.modifyCount(), 1);
     }
+
+    function test_unsubscribe_external_success() public {
+        SimpleSubscriber sub = new SimpleSubscriber();
+        harness.subscribe(10, address(sub), "");
+        harness.unsubscribe(10);
+        assertEq(sub.unsubscribeCount(), 1);
+        assertEq(address(harness.subscriber(10)), address(0));
+    }
+
+    function test_unsubscribe_external_notSubscribed() public {
+        vm.expectRevert(INotifier.NotSubscribed.selector);
+        harness.unsubscribe(11);
+    }
 }
