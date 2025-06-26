@@ -70,6 +70,19 @@ contract NativeWrapperTest is Test {
         wrapper.wrap{value: 0}(1 ether);
     }
 
+    function test_wrap_zero_amount_noop() public {
+        vm.deal(address(this), 1 ether);
+        wrapper.wrap{value: 0}(0);
+        assertEq(weth.balanceOf(address(wrapper)), 0);
+        assertEq(address(wrapper).balance, 0);
+    }
+
+    function test_unwrap_zero_amount_noop() public {
+        vm.deal(address(wrapper), 0);
+        wrapper.unwrap(0);
+        assertEq(address(wrapper).balance, 0);
+    }
+
     function test_unwrap_insufficient_balance_reverts() public {
         vm.expectRevert();
         wrapper.unwrap(1 ether);
