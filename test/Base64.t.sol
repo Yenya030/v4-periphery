@@ -12,4 +12,10 @@ contract Base64Test is Test {
         vm.expectRevert(bytes("invalid base64 decoder input"));
         caller.callDecode(bad);
     }
+
+    function test_decode_empty_returnsEmptyBytes() public {
+        DecodeCaller caller = new DecodeCaller();
+        bytes memory result = caller.callDecode("");
+        assertEq(result.length, 0);
+    }
 }
