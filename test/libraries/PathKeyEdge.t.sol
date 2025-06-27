@@ -22,4 +22,34 @@ contract PathKeyEdge is Test {
         assertEq(pool.fee, 3000);
         assertEq(pool.tickSpacing, 60);
     }
+
+    function test_currencyInLessThanIntermediate() public {
+        Currency inCurrency = Currency.wrap(address(0x1111));
+        Currency outCurrency = Currency.wrap(address(0x2222));
+        IHooks hooks = IHooks(address(0x1234));
+        PathKey memory path = PathKey(outCurrency, 3000, 60, hooks, bytes(""));
+
+        (PoolKey memory pool, bool zeroForOne) = this._call(path, inCurrency);
+        assertTrue(zeroForOne);
+        assertEq(Currency.unwrap(pool.currency0), Currency.unwrap(inCurrency));
+        assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(outCurrency));
+        assertEq(pool.fee, 3000);
+        assertEq(pool.tickSpacing, 60);
+        assertEq(address(pool.hooks), address(hooks));
+    }
+
+    function test_currencyInGreaterThanIntermediate() public {
+        Currency inCurrency = Currency.wrap(address(0x2222));
+        Currency outCurrency = Currency.wrap(address(0x1111));
+        IHooks hooks = IHooks(address(0x1234));
+        PathKey memory path = PathKey(outCurrency, 3000, 60, hooks, bytes(""));
+
+        (PoolKey memory pool, bool zeroForOne) = this._call(path, inCurrency);
+        assertTrue(!zeroForOne);
+        assertEq(Currency.unwrap(pool.currency0), Currency.unwrap(outCurrency));
+        assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(inCurrency));
+        assertEq(pool.fee, 3000);
+        assertEq(pool.tickSpacing, 60);
+        assertEq(address(pool.hooks), address(hooks));
+    }
 }
