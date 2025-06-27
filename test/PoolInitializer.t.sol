@@ -54,5 +54,14 @@ contract PoolInitializerTest is Test {
         PoolInitializerHarness h2 = new PoolInitializerHarness(IPoolManager(address(bad)));
         int24 tick = h2.initializePool(key, 99);
         assertEq(tick, type(int24).max);
+        assertEq(bad.lastPrice(), 0);
+    }
+
+    function test_initialize_catch_revert_does_not_change_state() public {
+        MockPoolManagerInit bad = new MockPoolManagerInit(0, true);
+        PoolInitializerHarness h2 = new PoolInitializerHarness(IPoolManager(address(bad)));
+        int24 tick = h2.initializePool(key, 42);
+        assertEq(tick, type(int24).max);
+        assertEq(bad.lastPrice(), 0);
     }
 }
