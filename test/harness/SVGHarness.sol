@@ -85,4 +85,23 @@ contract SVGHarness {
             )
         );
     }
+
+    function generateSVGCardMantleExternal(
+        string memory quoteCurrencySymbol,
+        string memory baseCurrencySymbol,
+        string memory feeTier
+    ) external pure returns (string memory svg) {
+        svg = string(
+            abi.encodePacked(
+                '<g mask="url(#fade-symbol)"><rect fill="none" x="0px" y="0px" width="290px" height="200px" /> <text y="70px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
+                quoteCurrencySymbol,
+                '/',
+                baseCurrencySymbol,
+                '</text><text y="115px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
+                feeTier,
+                "</text></g>",
+                '<rect x="16" y="16" width="258" height="468" rx="26" ry="26" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.2)" />'
+            )
+        );
+    }
 }
