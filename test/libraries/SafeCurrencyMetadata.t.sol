@@ -61,6 +61,16 @@ contract SafeCurrencyMetadataExtraTest is Test {
         assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 0);
     }
 
+    function test_currencyDecimals_maxUint8() public {
+        MockToken t = new MockToken("ABC", 255, false, false);
+        assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 255);
+    }
+
+    function test_currencyDecimals_boundary256() public {
+        MockToken t = new MockToken("ABC", 256, false, false);
+        assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 0);
+    }
+
     function test_currencyDecimals_revert() public {
         MockToken t = new MockToken("ABC", 18, false, true);
         assertEq(SafeCurrencyMetadata.currencyDecimals(address(t)), 0);
