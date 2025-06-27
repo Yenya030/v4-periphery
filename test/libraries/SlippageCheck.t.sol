@@ -57,6 +57,11 @@ contract SlippageCheckTest is Test {
         harness.callValidateMaxIn(delta, 5, 3);
     }
 
+    function test_validateMaxIn_zeroDelta() public {
+        BalanceDelta delta = toBalanceDelta(0, 0);
+        harness.callValidateMaxIn(delta, 1, 1);
+    }
+
     function test_validateMinOut_succeeds() public {
         BalanceDelta delta = toBalanceDelta(5, 6);
         harness.callValidateMinOut(delta, 5, 6);
@@ -68,6 +73,14 @@ contract SlippageCheckTest is Test {
             abi.encodeWithSelector(SlippageCheck.MinimumAmountInsufficient.selector, uint128(5), uint128(4))
         );
         harness.callValidateMinOut(delta, 5, 9);
+    }
+
+    function test_validateMinOut_zeroDelta_revert() public {
+        BalanceDelta delta = toBalanceDelta(0, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(SlippageCheck.MinimumAmountInsufficient.selector, uint128(1), uint128(0))
+        );
+        harness.callValidateMinOut(delta, 1, 0);
     }
 
     function test_validateMinOut_revert_amount1() public {
