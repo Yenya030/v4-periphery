@@ -28,4 +28,10 @@ contract AddressStringUtilEdgeTest is Test {
         assertEq(b[0], charRef(byteVal >> 4));
         assertEq(b[1], charRef(byteVal & 0xf));
     }
+
+    function test_toAsciiString_hexLetters() public {
+        address addr = address(0xaBcDEf0000000000000000000000000000000000);
+        string memory s = AddressStringUtil.toAsciiString(addr, 4);
+        assertEq(s, "ABCD");
+    }
 }
