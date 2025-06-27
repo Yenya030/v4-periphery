@@ -8,7 +8,8 @@ import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {PosmTestSetup} from "./shared/PosmTestSetup.sol";
 import {PositionConfig} from "./shared/PositionConfig.sol";
 import {MockTransferSubscriber} from "./mocks/MockTransferSubscriber.sol";
-import {IPositionManager} from "../../src/interfaces/IPositionManager.sol";
+import {IPositionManager} from "../src/interfaces/IPositionManager.sol";
+import {INotifier} from "../src/interfaces/INotifier.sol";
 
 contract StaleSubscriberTest is Test, PosmTestSetup {
     MockTransferSubscriber sub;
@@ -30,5 +31,42 @@ contract StaleSubscriberTest is Test, PosmTestSetup {
         config = PositionConfig({poolKey: key, tickLower: -300, tickUpper: 300});
     }
 
- 
+    function _mintAndSubscribe() internal returns (uint256 tokenId) {
+        tokenId = lpm.nextTokenId();
+        mint(config, 100e18, alice, ZERO_BYTES);
+
+        vm.startPrank(alice);
+        IERC721(address(lpm)).approve(address(this), tokenId);
+        vm.stopPrank();
+
+        lpm.subscribe(tokenId, address(sub), ZERO_BYTES);
+    }
+
+    function test_unsubscribe_after_safeTransfer_reverts() public {
+        uint256 tokenId = _mintAndSubscribe();
+
+        vm.prank(alice);
+        IERC721(address(lpm)).safeTransferFrom(alice, bob, tokenId);
+
+        assertEq(address(lpm.subscriber(tokenId)), address(0));
+        assertFalse(lpm.positionInfo(tokenId).hasSubscriber());
+
+        vm.prank(bob);
+        vm.expectRevert(INotifier.NotSubscribed.selector);
+        lpm.unsubscribe(tokenId);
+    }
+
+    function test_unsubscribe_after_transferFrom_reverts() public {
+        uint256 tokenId = _mintAndSubscribe();
+
+        vm.prank(alice);
+        IERC721(address(lpm)).transferFrom(alice, bob, tokenId);
+
+        assertEq(address(lpm.subscriber(tokenId)), address(0));
+        assertFalse(lpm.positionInfo(tokenId).hasSubscriber());
+
+        vm.prank(bob);
+        vm.expectRevert(INotifier.NotSubscribed.selector);
+        lpm.unsubscribe(tokenId);
+    }
 }
