@@ -85,5 +85,15 @@ contract DeltaResolverMapSettleTakeTest is Test {
         vm.expectRevert(abi.encodeWithSelector(DeltaResolver.DeltaNotPositive.selector, tokenCurrency));
         harness.expose_mapTakeAmount(tokenCurrency, ActionConstants.OPEN_DELTA);
     }
+
+    function test_settle_zeroAmount_returnsZero() public view {
+        uint256 amount = harness.expose_mapSettleAmount(tokenCurrency, 0);
+        assertEq(amount, 0);
+    }
+
+    function test_take_zeroAmount_returnsZero() public view {
+        uint256 amount = harness.expose_mapTakeAmount(tokenCurrency, 0);
+        assertEq(amount, 0);
+    }
 }
 

@@ -81,5 +81,17 @@ contract DeltaResolverMapWrapUnwrapTest is Test {
         vm.expectRevert(DeltaResolver.InsufficientBalance.selector);
         harness.expose_mapWrapUnwrapAmount(tokenCurrency, 10, tokenCurrency);
     }
+
+    function test_zeroAmount_returnsZero() public {
+        token.mint(address(harness), 5);
+        uint256 amount = harness.expose_mapWrapUnwrapAmount(tokenCurrency, 0, tokenCurrency);
+        assertEq(amount, 0);
+    }
+
+    function test_specificAmount_success() public {
+        token.mint(address(harness), 7);
+        uint256 amount = harness.expose_mapWrapUnwrapAmount(tokenCurrency, 5, tokenCurrency);
+        assertEq(amount, 5);
+    }
 }
 
