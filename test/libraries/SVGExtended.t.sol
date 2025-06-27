@@ -53,4 +53,9 @@ contract SVGExtendedTest is Test {
         vm.expectRevert(stdError.arithmeticError);
         harness.substringExternal("hello", 6, 3);
     }
+
+    function test_substring_empty_result() public {
+        string memory result = harness.substringExternal("hello", 2, 2);
+        assertEq(result, "");
+    }
 }

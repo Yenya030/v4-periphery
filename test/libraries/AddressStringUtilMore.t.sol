@@ -24,4 +24,10 @@ contract AddressStringUtilMoreTest is Test {
         string memory s = AddressStringUtil.toAsciiString(addr, 40);
         assertEq(s, "1234567890123456789012345678901234567890");
     }
+
+    function test_partial_length_with_letters() public {
+        address addr = 0xabCdEF1234567890aBcdefAbCDEFabCdEfAbCdeF;
+        string memory s = AddressStringUtil.toAsciiString(addr, 6);
+        assertEq(s, "ABCDEF");
+    }
 }
