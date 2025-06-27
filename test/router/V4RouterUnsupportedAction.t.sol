@@ -13,9 +13,7 @@ contract V4RouterUnsupportedActionTest is RoutingTestHelpers {
 
     function test_executeActions_unsupportedAction_reverts() public {
         plan = plan.add(0xff, "");
-        vm.expectRevert(
-            abi.encodeWithSelector(BaseActionsRouter.UnsupportedAction.selector, uint256(0xff))
-        );
+        vm.expectRevert(abi.encodeWithSelector(BaseActionsRouter.UnsupportedAction.selector, uint256(0xff)));
         router.executeActions(plan.encode());
     }
 }

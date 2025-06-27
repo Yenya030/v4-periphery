@@ -99,4 +99,3 @@ contract CalldataDecoderSwapShortTest is Test {
         decoder.decodeSwapExactOutSingleParams(invalid);
     }
 }
-

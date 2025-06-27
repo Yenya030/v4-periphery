@@ -17,7 +17,8 @@ contract CalldataDecoderEdgeTest is Test {
 
     function test_decodeIncreaseLiquidity_emptyHookData() public {
         bytes memory params = abi.encode(uint256(1), uint128(2), uint128(3), bytes(""));
-        (uint256 id, uint128 a0, uint128 a1, bytes memory hook) = decoder.decodeIncreaseLiquidityFromDeltasParams(params);
+        (uint256 id, uint128 a0, uint128 a1, bytes memory hook) =
+            decoder.decodeIncreaseLiquidityFromDeltasParams(params);
         assertEq(id, 1);
         assertEq(a0, 2);
         assertEq(a1, 3);
@@ -31,5 +32,4 @@ contract CalldataDecoderEdgeTest is Test {
         assertEq(out.owner, address(3));
         assertEq(out.hookData.length, 0);
     }
-
 }

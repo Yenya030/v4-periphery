@@ -10,6 +10,7 @@ import {PositionConfig} from "./shared/PositionConfig.sol";
 
 contract TokenIdOverflowTest is Test, PosmTestSetup {
     using stdStorage for StdStorage;
+
     StdStorage store;
     PositionConfig config;
     address alice = makeAddr("ALICE");

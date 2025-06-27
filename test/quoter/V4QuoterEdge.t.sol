@@ -21,24 +21,16 @@ contract V4QuoterEdgeTest is Test, Deployers {
 
     function test_quoteExactInputSingle_selfOnly_reverts() public {
         (PoolKey memory poolKey,) = initPool(currency0, currency1, IHooks(address(0)), 3000, SQRT_PRICE_1_1);
-        IV4Quoter.QuoteExactSingleParams memory params = IV4Quoter.QuoteExactSingleParams({
-            poolKey: poolKey,
-            zeroForOne: true,
-            exactAmount: 1,
-            hookData: ""
-        });
+        IV4Quoter.QuoteExactSingleParams memory params =
+            IV4Quoter.QuoteExactSingleParams({poolKey: poolKey, zeroForOne: true, exactAmount: 1, hookData: ""});
         vm.expectRevert(BaseV4Quoter.NotSelf.selector);
         quoter._quoteExactInputSingle(params);
     }
 
     function test_quoteExactInputSingle_insufficientLiquidity_reverts() public {
         (PoolKey memory poolKey,) = initPool(currency0, currency1, IHooks(address(0)), 3000, SQRT_PRICE_1_1);
-        IV4Quoter.QuoteExactSingleParams memory params = IV4Quoter.QuoteExactSingleParams({
-            poolKey: poolKey,
-            zeroForOne: true,
-            exactAmount: 100,
-            hookData: ""
-        });
+        IV4Quoter.QuoteExactSingleParams memory params =
+            IV4Quoter.QuoteExactSingleParams({poolKey: poolKey, zeroForOne: true, exactAmount: 100, hookData: ""});
         bytes memory reason = abi.encodeWithSelector(BaseV4Quoter.NotEnoughLiquidity.selector, poolKey.toId());
         vm.expectRevert(abi.encodeWithSelector(QuoterRevert.UnexpectedRevertBytes.selector, reason));
         quoter.quoteExactInputSingle(params);

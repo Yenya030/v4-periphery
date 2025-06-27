@@ -26,13 +26,15 @@ contract SVGExtendedTest is Test {
         for (uint256 i; i <= h.length - n.length; i++) {
             found = true;
             for (uint256 j; j < n.length; j++) {
-                if (h[i + j] != n[j]) { found = false; break; }
+                if (h[i + j] != n[j]) {
+                    found = false;
+                    break;
+                }
             }
             if (found) return true;
         }
         return false;
     }
-
 
     function test_generateSVGRareSparkle_whenRare() public {
         string memory svg = harness.generateSVGRareSparkle(1, 0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB);

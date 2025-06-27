@@ -24,8 +24,7 @@ contract NegativeDeltaRemoveTest is Test, PosmTestSetup {
         negHook = new NegativeDeltaHook();
         hookAddr = address(
             uint160(
-                type(uint160).max & clearAllHookPermissionsMask
-                    | Hooks.AFTER_REMOVE_LIQUIDITY_FLAG
+                type(uint160).max & clearAllHookPermissionsMask | Hooks.AFTER_REMOVE_LIQUIDITY_FLAG
                     | Hooks.AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA_FLAG
             )
         );

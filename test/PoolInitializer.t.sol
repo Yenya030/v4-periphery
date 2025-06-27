@@ -40,7 +40,13 @@ contract PoolInitializerTest is Test {
     function setUp() public {
         manager = new MockPoolManagerInit(5, false);
         harness = new PoolInitializerHarness(IPoolManager(address(manager)));
-        key = PoolKey({currency0: Currency.wrap(address(1)), currency1: Currency.wrap(address(2)), fee: 0, tickSpacing: 1, hooks: IHooks(address(0))});
+        key = PoolKey({
+            currency0: Currency.wrap(address(1)),
+            currency1: Currency.wrap(address(2)),
+            fee: 0,
+            tickSpacing: 1,
+            hooks: IHooks(address(0))
+        });
     }
 
     function test_initialize_returns_tick() public {

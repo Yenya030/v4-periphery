@@ -6,23 +6,50 @@ import {SafeCurrencyMetadata} from "../../src/libraries/SafeCurrencyMetadata.sol
 
 contract Bytes32SymbolToken {
     bytes32 private symbolValue;
-    constructor(bytes32 s) { symbolValue = s; }
-    function symbol() external view returns (bytes32) { return symbolValue; }
-    function decimals() external pure returns (uint256) { return 18; }
+
+    constructor(bytes32 s) {
+        symbolValue = s;
+    }
+
+    function symbol() external view returns (bytes32) {
+        return symbolValue;
+    }
+
+    function decimals() external pure returns (uint256) {
+        return 18;
+    }
 }
 
 contract StringSymbolToken {
     string private symbolValue;
-    constructor(string memory s) { symbolValue = s; }
-    function symbol() external view returns (string memory) { return symbolValue; }
-    function decimals() external pure returns (uint256) { return 18; }
+
+    constructor(string memory s) {
+        symbolValue = s;
+    }
+
+    function symbol() external view returns (string memory) {
+        return symbolValue;
+    }
+
+    function decimals() external pure returns (uint256) {
+        return 18;
+    }
 }
 
 contract StringDecimalsToken {
     string private decimalsValue;
-    constructor(string memory d) { decimalsValue = d; }
-    function symbol() external pure returns (string memory) { return "T"; }
-    function decimals() external view returns (string memory) { return decimalsValue; }
+
+    constructor(string memory d) {
+        decimalsValue = d;
+    }
+
+    function symbol() external pure returns (string memory) {
+        return "T";
+    }
+
+    function decimals() external view returns (string memory) {
+        return decimalsValue;
+    }
 }
 
 contract SafeCurrencyMetadataAdditionalTest is Test {

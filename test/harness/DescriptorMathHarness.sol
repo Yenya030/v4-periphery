@@ -15,7 +15,11 @@ contract DescriptorMathHarness {
         }
     }
 
-    function scaleExternal(uint256 n, uint256 inMn, uint256 inMx, uint256 outMn, uint256 outMx) external pure returns (string memory) {
+    function scaleExternal(uint256 n, uint256 inMn, uint256 inMx, uint256 outMn, uint256 outMx)
+        external
+        pure
+        returns (string memory)
+    {
         return ((n - inMn) * (outMx - outMn) / (inMx - inMn) + outMn).toString();
     }
 }

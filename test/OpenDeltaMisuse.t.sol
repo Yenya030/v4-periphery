@@ -31,7 +31,10 @@ contract MockPoolManager {
         lastAmountSpecified = params.amountSpecified;
         return BalanceDelta.wrap(0);
     }
-    function exttload(bytes32 slot) external view returns (bytes32 value) { return bytes32(uint256(int256(deltas[slot]))); }
+
+    function exttload(bytes32 slot) external view returns (bytes32 value) {
+        return bytes32(uint256(int256(deltas[slot])));
+    }
 }
 
 contract RouterHarness is V4Router, ReentrancyLock {
@@ -40,13 +43,17 @@ contract RouterHarness is V4Router, ReentrancyLock {
 
     constructor(IPoolManager pm) V4Router(pm) {}
 
-    function msgSender() public view override returns (address) { return _getLocker(); }
+    function msgSender() public view override returns (address) {
+        return _getLocker();
+    }
+
     int256 public recordedAmountSpecified;
 
     function swapExactInputSingleHarness(IV4Router.ExactInputSingleParams memory params) external {
         uint128 amountIn = params.amountIn;
         if (amountIn == ActionConstants.OPEN_DELTA) {
-            amountIn = _getFullCredit(params.zeroForOne ? params.poolKey.currency0 : params.poolKey.currency1).toUint128();
+            amountIn =
+                _getFullCredit(params.zeroForOne ? params.poolKey.currency0 : params.poolKey.currency1).toUint128();
         }
         recordedAmountSpecified = -int256(uint256(amountIn));
         _swapInternal(params.poolKey, params.zeroForOne, recordedAmountSpecified, params.hookData);
@@ -102,4 +109,3 @@ contract OpenDeltaMisuseTest is Test {
         assertEq(router.recordedAmountSpecified(), -int256(1000 ether));
     }
 }
-

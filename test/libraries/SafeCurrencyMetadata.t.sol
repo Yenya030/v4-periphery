@@ -22,16 +22,19 @@ contract MockToken {
     uint256 public decimalsReturn;
     bool public revertSymbol;
     bool public revertDecimals;
+
     constructor(string memory s, uint256 d, bool rS, bool rD) {
         symbolReturn = s;
         decimalsReturn = d;
         revertSymbol = rS;
         revertDecimals = rD;
     }
+
     function symbol() external view returns (string memory) {
         if (revertSymbol) revert();
         return symbolReturn;
     }
+
     function decimals() external view returns (uint256) {
         if (revertDecimals) revert();
         return decimalsReturn;
@@ -39,7 +42,6 @@ contract MockToken {
 }
 
 contract SafeCurrencyMetadataExtraTest is Test {
-
     function test_currencySymbol_fallback() public {
         MockToken t = new MockToken("", 18, true, false);
         string memory expected = AddressStringUtil.toAsciiString(address(t), 6);

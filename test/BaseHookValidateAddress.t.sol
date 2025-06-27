@@ -11,6 +11,7 @@ contract DummyPoolManager2 {}
 
 contract BadHook is BaseHook {
     constructor(IPoolManager manager) BaseHook(manager) {}
+
     function getHookPermissions() public pure override returns (Hooks.Permissions memory perm) {
         perm = Hooks.Permissions({
             beforeInitialize: true,
@@ -53,16 +54,11 @@ contract BaseHookValidateAddressTest is Test {
     function test_constructor_succeeds_when_address_matches() public {
         DummyPoolManager2 pm = new DummyPoolManager2();
         uint160 flags = uint160(Hooks.BEFORE_INITIALIZE_FLAG);
-        (address predicted, bytes32 salt) = HookMiner.find(
-            address(this),
-            flags,
-            type(GoodHook).creationCode,
-            abi.encode(IPoolManager(address(pm)))
-        );
+        (address predicted, bytes32 salt) =
+            HookMiner.find(address(this), flags, type(GoodHook).creationCode, abi.encode(IPoolManager(address(pm))));
         GoodHook hook = new GoodHook{salt: salt}(IPoolManager(address(pm)));
         assertEq(address(hook), predicted);
         // ensure hook permissions validate at deployed address
         hook.getHookPermissions();
     }
 }
-

@@ -47,4 +47,3 @@ contract QuoterRevertTest is Test {
         wrapper.callBubble(data);
     }
 }
-
