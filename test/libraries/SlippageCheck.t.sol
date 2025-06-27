@@ -34,6 +34,12 @@ contract SlippageCheckTest is Test {
         harness.callValidateMaxIn(delta, 5, 100);
     }
 
+    function test_validateMaxIn_exceeds_amount1() public {
+        BalanceDelta delta = toBalanceDelta(0, -5);
+        vm.expectRevert(abi.encodeWithSelector(SlippageCheck.MaximumAmountExceeded.selector, uint128(4), uint128(5)));
+        harness.callValidateMaxIn(delta, 100, 4);
+    }
+
     function test_validateMinOut_negativeDelta_overflow() public {
         BalanceDelta delta = toBalanceDelta(-1, 0);
         vm.expectRevert();
