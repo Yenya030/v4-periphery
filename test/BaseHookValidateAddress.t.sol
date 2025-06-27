@@ -31,6 +31,10 @@ contract BadHook is BaseHook {
     }
 }
 
+contract GoodHook is BadHook {
+    constructor(IPoolManager manager) BadHook(manager) {}
+}
+
 contract BaseHookValidateAddressTest is Test {
     function test_constructor_reverts_when_address_mismatch() public {
         DummyPoolManager2 pm = new DummyPoolManager2();
@@ -44,6 +48,21 @@ contract BaseHookValidateAddressTest is Test {
         }
         vm.expectRevert(abi.encodeWithSelector(Hooks.HookAddressNotValid.selector, predicted));
         new BadHook{salt: salt}(IPoolManager(address(pm)));
+    }
+
+    function test_constructor_succeeds_when_address_matches() public {
+        DummyPoolManager2 pm = new DummyPoolManager2();
+        uint160 flags = uint160(Hooks.BEFORE_INITIALIZE_FLAG);
+        (address predicted, bytes32 salt) = HookMiner.find(
+            address(this),
+            flags,
+            type(GoodHook).creationCode,
+            abi.encode(IPoolManager(address(pm)))
+        );
+        GoodHook hook = new GoodHook{salt: salt}(IPoolManager(address(pm)));
+        assertEq(address(hook), predicted);
+        // ensure hook permissions validate at deployed address
+        hook.getHookPermissions();
     }
 }
 
