@@ -175,4 +175,45 @@ contract UniswapV4DeployerCompetitionTest is Test {
         vm.prank(address(1));
         competition.deploy(abi.encodePacked(type(PoolManager).creationCode, uint256(uint160(v4Owner))));
     }
+
+    function test_updateBestAddress_multiple_updates() public {
+        address caller1 = makeAddr("CALLER1");
+        address caller2 = makeAddr("CALLER2");
+
+        bytes32 salt1;
+        address addr1;
+        for (uint256 i = 1; i < 100000; i++) {
+            bytes32 candidate = bytes32((uint256(uint160(caller1)) << 96) | i);
+            address candidateAddr = Create2.computeAddress(candidate, initCodeHash, address(competition));
+            if (candidateAddr.betterThan(defaultAddress)) {
+                salt1 = candidate;
+                addr1 = candidateAddr;
+                break;
+            }
+        }
+        require(addr1 != address(0), "no salt1");
+
+        vm.prank(caller1);
+        competition.updateBestAddress(salt1);
+        assertEq(competition.bestAddress(), addr1);
+
+        bytes32 salt2;
+        address addr2;
+        for (uint256 i = 1; i < 100000; i++) {
+            bytes32 candidate = bytes32((uint256(uint160(caller2)) << 96) | i);
+            address candidateAddr = Create2.computeAddress(candidate, initCodeHash, address(competition));
+            if (candidateAddr.betterThan(addr1)) {
+                salt2 = candidate;
+                addr2 = candidateAddr;
+                break;
+            }
+        }
+        require(addr2 != address(0), "no salt2");
+
+        vm.prank(caller2);
+        competition.updateBestAddress(salt2);
+        assertEq(competition.bestAddress(), addr2);
+        assertEq(competition.bestAddressSubmitter(), caller2);
+        assertEq(competition.bestAddressSalt(), salt2);
+    }
 }
