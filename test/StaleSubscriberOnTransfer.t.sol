@@ -8,7 +8,7 @@ import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {PosmTestSetup} from "./shared/PosmTestSetup.sol";
 import {PositionConfig} from "./shared/PositionConfig.sol";
 import {MockTransferSubscriber} from "./mocks/MockTransferSubscriber.sol";
-import {IPositionManager} from "../../src/interfaces/IPositionManager.sol";
+import {IPositionManager} from "../src/interfaces/IPositionManager.sol";
 
 contract StaleSubscriberTest is Test, PosmTestSetup {
     MockTransferSubscriber sub;
