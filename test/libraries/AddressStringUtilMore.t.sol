@@ -19,9 +19,20 @@ contract AddressStringUtilMoreTest is Test {
         this._call(address(0x1234), 42);
     }
 
+    function test_invalid_length_odd() public {
+        vm.expectRevert(abi.encodeWithSelector(AddressStringUtil.InvalidAddressLength.selector, 5));
+        this._call(address(0x1234), 5);
+    }
+
     function test_full_length_output() public {
         address addr = 0x1234567890123456789012345678901234567890;
         string memory s = AddressStringUtil.toAsciiString(addr, 40);
         assertEq(s, "1234567890123456789012345678901234567890");
+    }
+
+    function test_partial_output_letters() public {
+        address addr = 0xABcdEfaB00000000000000000000000000000000;
+        string memory s = AddressStringUtil.toAsciiString(addr, 8);
+        assertEq(s, "ABCDEFAB");
     }
 }
