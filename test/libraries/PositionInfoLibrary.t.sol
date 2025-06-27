@@ -69,4 +69,13 @@ contract PositionInfoLibraryTest is Test {
         info = info.setUnsubscribe();
         assertEq(info.hasSubscriber(), false);
     }
+
+    function test_empty_position_info_constant() public pure {
+        PositionInfo info = PositionInfoLibrary.EMPTY_POSITION_INFO;
+        assertEq(PositionInfo.unwrap(info), 0);
+        assertEq(info.hasSubscriber(), false);
+        assertEq(info.tickLower(), 0);
+        assertEq(info.tickUpper(), 0);
+        assertEq(info.poolId(), bytes25(0));
+    }
 }
