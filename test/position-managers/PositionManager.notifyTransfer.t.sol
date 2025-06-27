@@ -61,4 +61,27 @@ contract NotifyTransferTest is Test, PosmTestSetup {
         assertEq(sub.notifyTransferCount(), 0);
         assertEq(address(lpm.subscriber(tokenId)), address(0));
     }
+
+    function test_resubscribe_after_transfer() public {
+        uint256 tokenId = lpm.nextTokenId();
+        mint(config, 100e18, alice, ZERO_BYTES);
+
+        vm.startPrank(alice);
+        IERC721(address(lpm)).approve(address(this), tokenId);
+        vm.stopPrank();
+
+        lpm.subscribe(tokenId, address(sub), ZERO_BYTES);
+        assertEq(sub.notifySubscribeCount(), 1);
+
+        IERC721(address(lpm)).transferFrom(alice, bob, tokenId);
+
+        assertEq(sub.notifyTransferCount(), 0);
+        assertEq(address(lpm.subscriber(tokenId)), address(0));
+
+        vm.prank(bob);
+        lpm.subscribe(tokenId, address(sub), ZERO_BYTES);
+
+        assertEq(sub.notifySubscribeCount(), 2);
+        assertEq(address(lpm.subscriber(tokenId)), address(sub));
+    }
 }
