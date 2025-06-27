@@ -14,6 +14,10 @@ contract ReentrancyLockHarness is ReentrancyLock {
         return success;
     }
 
+    function revertAfterLock() external isNotLocked {
+        revert("fail");
+    }
+
     function currentLocker() external view returns (address) {
         return _getLocker();
     }
@@ -35,6 +39,13 @@ contract ReentrancyLockTest is Test {
     function test_reentrant_call_reverts() public {
         bool success = harness.reentrantAttempt();
         assertTrue(!success);
+        assertEq(harness.currentLocker(), address(0));
+    }
+
+    function test_lock_cleared_on_revert() public {
+        try harness.revertAfterLock() {
+            fail();
+        } catch {}
         assertEq(harness.currentLocker(), address(0));
     }
 }
