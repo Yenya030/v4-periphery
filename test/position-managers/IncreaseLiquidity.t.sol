@@ -628,9 +628,7 @@ contract IncreaseLiquidityTest is Test, PosmTestSetup, Fuzzers {
         );
 
         bytes memory calls = getIncreaseEncoded(tokenId, config, newLiquidity, 1 wei, 1 wei, ZERO_BYTES);
-        vm.expectRevert(
-            abi.encodeWithSelector(SlippageCheck.MaximumAmountExceeded.selector, 1 wei, amount0 + 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(SlippageCheck.MaximumAmountExceeded.selector, 1 wei, amount0 + 1));
         lpm.modifyLiquidities(calls, _deadline);
     }
 

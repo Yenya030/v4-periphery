@@ -25,7 +25,9 @@ contract MigratorImmutables {
 }
 
 contract MigratorImmutablesHarness is MigratorImmutables {
-    constructor(address v3, address v4) MigratorImmutables(MigratorParameters({v3PositionManager: v3, v4PositionManager: v4})) {}
+    constructor(address v3, address v4)
+        MigratorImmutables(MigratorParameters({v3PositionManager: v3, v4PositionManager: v4}))
+    {}
 
     function preview(uint256 tokenId) external view returns (address) {
         return V3_POSITION_MANAGER.ownerOf(tokenId);

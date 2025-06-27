@@ -96,4 +96,3 @@ contract DeltaResolverMapSettleTakeTest is Test {
         assertEq(amount, 0);
     }
 }
-

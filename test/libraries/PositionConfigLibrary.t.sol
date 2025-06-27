@@ -94,7 +94,6 @@ contract PathKeyLibraryTest is Test {
         assertEq(Currency.unwrap(pool.currency0), Currency.unwrap(outCurrency));
         assertEq(Currency.unwrap(pool.currency1), Currency.unwrap(inCurrency));
     }
-
 }
 
 contract AddressStringUtilTest is Test {

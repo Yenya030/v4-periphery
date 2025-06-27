@@ -19,11 +19,9 @@ contract WETHHookInternalTest is Test, Deployers {
             payable(
                 address(
                     uint160(
-                        type(uint160).max & clearAllHookPermissionsMask |
-                            Hooks.BEFORE_SWAP_FLAG |
-                            Hooks.BEFORE_ADD_LIQUIDITY_FLAG |
-                            Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG |
-                            Hooks.BEFORE_INITIALIZE_FLAG
+                        type(uint160).max & clearAllHookPermissionsMask | Hooks.BEFORE_SWAP_FLAG
+                            | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG
+                            | Hooks.BEFORE_INITIALIZE_FLAG
                     )
                 )
             )

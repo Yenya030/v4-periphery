@@ -11,8 +11,7 @@ contract HookMinerComputeAddressTest is Test {
     function test_computeAddress_matches_create2() public {
         address deployer = address(this);
         bytes memory bytecode = abi.encodePacked(
-            type(MockBlankHook).creationCode,
-            abi.encode(IPoolManager(address(0)), uint256(123), uint16(0))
+            type(MockBlankHook).creationCode, abi.encode(IPoolManager(address(0)), uint256(123), uint16(0))
         );
         uint256 salt = 12345;
         address expected = Create2.computeAddress(bytes32(salt), keccak256(bytecode), deployer);

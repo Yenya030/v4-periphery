@@ -58,7 +58,8 @@ contract DeltaResolverMapWrapUnwrapTest is Test {
 
     function test_contractBalance() public {
         token.mint(address(harness), 20);
-        uint256 amount = harness.expose_mapWrapUnwrapAmount(tokenCurrency, ActionConstants.CONTRACT_BALANCE, tokenCurrency);
+        uint256 amount =
+            harness.expose_mapWrapUnwrapAmount(tokenCurrency, ActionConstants.CONTRACT_BALANCE, tokenCurrency);
         assertEq(amount, 20);
     }
 
@@ -94,4 +95,3 @@ contract DeltaResolverMapWrapUnwrapTest is Test {
         assertEq(amount, 5);
     }
 }
-

@@ -27,9 +27,7 @@ contract MockPoolManagerTakeZero {
 }
 
 contract TakeZeroResolverHarness is DeltaResolver {
-    constructor(MockPoolManagerTakeZero manager)
-        ImmutableState(IPoolManager(address(manager)))
-    {}
+    constructor(MockPoolManagerTakeZero manager) ImmutableState(IPoolManager(address(manager))) {}
 
     function expose_take(Currency currency, address recipient, uint256 amount) external {
         _take(currency, recipient, amount);
@@ -59,4 +57,3 @@ contract DeltaResolverTakeZeroTest is Test {
         assertEq(manager.takeCallCount(), 1);
     }
 }
-

@@ -43,4 +43,3 @@ contract V4QuoterMsgSenderResetTest is Test {
         assertEq(quoter.msgSender(), address(0));
     }
 }
-

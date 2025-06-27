@@ -21,7 +21,8 @@ contract GetPoolAndPositionInfoTest is Test, PosmTestSetup {
     }
 
     function test_getPoolAndPositionInfo_returns_pool_and_position() public {
-        PositionConfig memory config = PositionConfig({poolKey: key, tickLower: -key.tickSpacing, tickUpper: key.tickSpacing});
+        PositionConfig memory config =
+            PositionConfig({poolKey: key, tickLower: -key.tickSpacing, tickUpper: key.tickSpacing});
         uint256 liquidity = 1e18;
         mint(config, liquidity, address(this), "");
         uint256 tokenId = lpm.nextTokenId() - 1;
@@ -41,4 +42,3 @@ contract GetPoolAndPositionInfoTest is Test, PosmTestSetup {
         assertEq(returnedLiquidity, liquidity);
     }
 }
-

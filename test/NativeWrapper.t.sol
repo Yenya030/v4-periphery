@@ -15,10 +15,7 @@ contract MockPoolManager {
 }
 
 contract NativeWrapperHarness is NativeWrapper {
-    constructor(IWETH9 _weth9, IPoolManager _poolManager)
-        ImmutableState(_poolManager)
-        NativeWrapper(_weth9)
-    {}
+    constructor(IWETH9 _weth9, IPoolManager _poolManager) ImmutableState(_poolManager) NativeWrapper(_weth9) {}
 
     function wrap(uint256 amount) external payable {
         _wrap(amount);

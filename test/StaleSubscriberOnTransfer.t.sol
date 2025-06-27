@@ -29,6 +29,4 @@ contract StaleSubscriberTest is Test, PosmTestSetup {
 
         config = PositionConfig({poolKey: key, tickLower: -300, tickUpper: 300});
     }
-
- 
 }

@@ -11,7 +11,7 @@ contract ERC721PermitIsApprovedOrOwnerTest is Test {
     address operator = address(0x3);
 
     function setUp() public {
-        token = new ERC721PermitHarness("name","SYM");
+        token = new ERC721PermitHarness("name", "SYM");
     }
 
     function test_owner_isApprovedOrOwner_true() public {

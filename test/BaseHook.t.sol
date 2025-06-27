@@ -83,10 +83,14 @@ contract BaseHookTest is Test {
         hook.beforeRemoveLiquidity(address(this), key, modifyParams, "");
 
         vm.expectRevert(BaseHook.HookNotImplemented.selector);
-        hook.afterAddLiquidity(address(this), key, modifyParams, BalanceDeltaLibrary.ZERO_DELTA, BalanceDeltaLibrary.ZERO_DELTA, "");
+        hook.afterAddLiquidity(
+            address(this), key, modifyParams, BalanceDeltaLibrary.ZERO_DELTA, BalanceDeltaLibrary.ZERO_DELTA, ""
+        );
 
         vm.expectRevert(BaseHook.HookNotImplemented.selector);
-        hook.afterRemoveLiquidity(address(this), key, modifyParams, BalanceDeltaLibrary.ZERO_DELTA, BalanceDeltaLibrary.ZERO_DELTA, "");
+        hook.afterRemoveLiquidity(
+            address(this), key, modifyParams, BalanceDeltaLibrary.ZERO_DELTA, BalanceDeltaLibrary.ZERO_DELTA, ""
+        );
 
         vm.expectRevert(BaseHook.HookNotImplemented.selector);
         hook.beforeSwap(address(this), key, swapParams, "");
@@ -102,4 +106,3 @@ contract BaseHookTest is Test {
         vm.stopPrank();
     }
 }
-
