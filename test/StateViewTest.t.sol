@@ -287,6 +287,25 @@ contract StateViewTest is Test, Deployers, Fuzzers {
         assertEq(feeGrowthInside1X128, 0);
     }
 
+    function test_getPositionInfo_fullParams() public {
+        modifyLiquidityRouter.modifyLiquidity(key, ModifyLiquidityParams(-60, 60, 10_000 ether, 0), ZERO_BYTES);
+        uint256 swapAmount = 10 ether;
+        swap(key, true, -int256(swapAmount), ZERO_BYTES);
+        modifyLiquidityRouter.modifyLiquidity(key, ModifyLiquidityParams(-60, 60, 0, 0), ZERO_BYTES);
+
+        (uint128 liquidity, uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) = state.getPositionInfo(
+            poolId,
+            address(modifyLiquidityRouter),
+            -60,
+            60,
+            bytes32(0)
+        );
+
+        assertEq(liquidity, 10_000 ether);
+        assertNotEq(feeGrowthInside0X128, 0);
+        assertEq(feeGrowthInside1X128, 0);
+    }
+
     function test_fuzz_getPositionInfo(ModifyLiquidityParams memory params, uint256 swapAmount, bool zeroForOne)
         public
     {
