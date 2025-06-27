@@ -40,6 +40,12 @@ contract SlippageCheckTest is Test {
         harness.callValidateMinOut(delta, 1, 0);
     }
 
+    function test_validateMinOut_negativeDelta_both_overflow() public {
+        BalanceDelta delta = toBalanceDelta(-1, -1);
+        vm.expectRevert();
+        harness.callValidateMinOut(delta, 0, 0);
+    }
+
     function test_validateMaxIn_withinLimits() public {
         BalanceDelta delta = toBalanceDelta(-5, -3);
         harness.callValidateMaxIn(delta, 5, 3);
