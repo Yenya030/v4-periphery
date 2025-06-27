@@ -56,6 +56,12 @@ contract VanityAddressLibTest is Test {
         assertEq(score, expected);
     }
 
+    function test_scoreLeadingFives() public pure {
+        address addr = address(0x4444444000000000000000000000000000004444);
+        uint256 score = VanityAddressLib.score(addr);
+        assertEq(score, 71);
+    }
+
     function test_scores_succeed() public pure {
         assertEq(VanityAddressLib.score(address(0x0000000000000000000000000000000000000082)), 0); // 0
         assertEq(VanityAddressLib.score(address(0x0400000000000000000000000000000000000000)), 11); // 10 * 1 + 1 = 11
