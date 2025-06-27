@@ -31,6 +31,15 @@ contract SVGHarness {
         return "";
     }
 
+    function substringExternal(string memory str, uint256 startIndex, uint256 endIndex) external pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(endIndex - startIndex);
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = strBytes[i];
+        }
+        return string(result);
+    }
+
     function isRare(uint256 tokenId, address hooks) public pure returns (bool) {
         bytes32 h = keccak256(abi.encodePacked(tokenId, hooks));
         return uint256(h) < type(uint256).max / (1 + BitMath.mostSignificantBit(tokenId) * 2);

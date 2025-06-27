@@ -43,4 +43,14 @@ contract SVGExtendedTest is Test {
         string memory svg = harness.generateSVGRareSparkle(2, 0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB);
         assertEq(svg, "");
     }
+
+    function test_substring_outOfBounds_reverts() public {
+        vm.expectRevert(stdError.indexOOBError);
+        harness.substringExternal("hello", 0, 6);
+    }
+
+    function test_substring_startGreaterThanEnd_reverts() public {
+        vm.expectRevert(stdError.arithmeticError);
+        harness.substringExternal("hello", 6, 3);
+    }
 }
