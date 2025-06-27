@@ -41,4 +41,10 @@ contract LockerTest is Test {
     function test_get_without_set_returns_zero() public {
         assertEq(harness.getLocker(), address(0));
     }
+
+    function test_set_and_get_separate_calls() public {
+        address expected = address(0x1234);
+        harness.setLocker(expected);
+        assertEq(harness.getLocker(), expected);
+    }
 }
