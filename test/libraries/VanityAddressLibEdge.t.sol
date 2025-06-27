@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
+import "forge-std/Test.sol";
+import {stdError} from "forge-std/StdError.sol";
 import {VanityAddressLib} from "../../src/libraries/VanityAddressLib.sol";
 
 contract VanityAddressLibEdgeHarness {
@@ -35,5 +36,11 @@ contract VanityAddressLibEdgeTest is Test {
         assertEq(harness.getNibble(sample, 3), 0x4);
         assertEq(harness.getNibble(sample, 38), 0x7);
         assertEq(harness.getNibble(sample, 39), 0x8);
+    }
+
+    function test_getNibble_outOfBounds() public {
+        bytes20 sample = bytes20(0x1234567890AbcdEF1234567890aBcdef12345678);
+        vm.expectRevert(stdError.indexOOBError);
+        harness.getNibble(sample, 40);
     }
 }
