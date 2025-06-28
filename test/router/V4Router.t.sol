@@ -270,6 +270,35 @@ contract V4RouterTest is RoutingTestHelpers {
         assertEq(outputBalanceAfter - outputBalanceBefore, expectedAmountOut);
     }
 
+    function test_swapExactIn_zeroHop_reverts() public {
+        uint256 amountIn = 1 ether;
+
+        tokenPath.push(currency0);
+        IV4Router.ExactInputParams memory params = _getExactInputParams(tokenPath, amountIn);
+        params.amountOutMinimum = 1;
+
+        plan = plan.add(Actions.SWAP_EXACT_IN, abi.encode(params));
+        bytes memory data = plan.finalizeSwap(currency0, currency0, ActionConstants.MSG_SENDER);
+
+        vm.expectRevert(abi.encodeWithSelector(IV4Router.V4TooLittleReceived.selector, 1, 0));
+        router.executeActions(data);
+    }
+
+    function test_swapExactOut_zeroHop_noop() public {
+        uint256 amountOut = 1 ether;
+
+        tokenPath.push(currency0);
+        IV4Router.ExactOutputParams memory params = _getExactOutputParams(tokenPath, amountOut);
+
+        plan = plan.add(Actions.SWAP_EXACT_OUT, abi.encode(params));
+
+        (uint256 inputBalanceBefore, uint256 outputBalanceBefore, uint256 inputBalanceAfter, uint256 outputBalanceAfter)
+        = _finalizeAndExecuteSwap(currency0, currency0, 0);
+
+        assertEq(inputBalanceBefore, inputBalanceAfter);
+        assertEq(outputBalanceBefore, outputBalanceAfter);
+    }
+
     function test_swap_settleRouterBalance_swapOpenDelta() public {
         uint256 amountIn = 1 ether;
         uint256 expectedAmountOut = 992054607780215625;
