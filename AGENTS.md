@@ -17,3 +17,13 @@ This repository does not previously include an AGENTS.md file. The following ins
 - The CI workflows run `forge fmt --check` and `forge test --isolate -vvv`, so ensure tests pass locally.
 - Be respectful in issues and pull requests. Spam or disrespectful content may be closed.
 
+## Known Test Gaps
+The coverage reports and existing test files highlight several incomplete areas:
+- ERC-6909 handling in fee collection and gas tests is still unimplemented.
+- Notifier flows using a native pool key are untested.
+- Some rounding issues (e.g., off-by-one wei) remain only partially exercised.
+- Helper libraries including `Descriptor.sol`, `SVG.sol`, `AddressStringUtil.sol`, and `CalldataDecoder.sol` exhibit relatively low coverage.
+- Edge cases around `HookMiner.find` loop limits may reintroduce nondeterministic behavior.
+- Complex SVG generation and descriptor formatting lack thorough branch coverage.
+
+
