@@ -104,4 +104,32 @@ contract SVGHarness {
             )
         );
     }
+
+    function generageSvgCurveExternal(int24 tickLower, int24 tickUpper, int24 tickSpacing, int8 overRange)
+        external
+        pure
+        returns (string memory svg)
+    {
+        string memory fade = overRange == 1 ? "#fade-up" : overRange == -1 ? "#fade-down" : "#none";
+        string memory curve = SVG.getCurve(tickLower, tickUpper, tickSpacing);
+        svg = string(
+            abi.encodePacked(
+                '<g mask="url(',
+                fade,
+                ')"',
+                ' style="transform:translate(72px,189px)"><rect x="-16px" y="-16px" width="180px" height="180px" fill="none" />',
+                '<path d="',
+                curve,
+                '" stroke="rgba(0,0,0,0.3)" stroke-width="32px" fill="none" stroke-linecap="round" />',
+                '</g><g mask="url(',
+                fade,
+                ')"',
+                ' style="transform:translate(72px,189px)"><rect x="-16px" y="-16px" width="180px" height="180px" fill="none" />',
+                '<path d="',
+                curve,
+                '" stroke="rgba(255,255,255,1)" fill="none" stroke-linecap="round" /></g>',
+                SVG.generateSVGCurveCircle(overRange)
+            )
+        );
+    }
 }
