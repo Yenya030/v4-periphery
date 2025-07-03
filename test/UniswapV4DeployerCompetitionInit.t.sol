@@ -15,7 +15,8 @@ contract UniswapV4DeployerCompetitionInitTest is Test {
     function setUp() public {
         competitionDeadline = block.timestamp + 10 days;
         bytes32 initCodeHash = keccak256(abi.encodePacked(type(PoolManager).creationCode, uint256(uint160(owner))));
-        competition = new UniswapV4DeployerCompetition(initCodeHash, competitionDeadline, deployer, exclusiveDeployLength);
+        competition =
+            new UniswapV4DeployerCompetition(initCodeHash, competitionDeadline, deployer, exclusiveDeployLength);
     }
 
     function test_exclusiveDeployDeadline_calculation() public {
