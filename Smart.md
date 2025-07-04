@@ -171,3 +171,205 @@ Provides external quote functions that simulate swaps through PoolManager and re
 #### Critical Program Points:
 - `quoteExactInputSingle`, `quoteExactInput`, `quoteExactOutputSingle`, `quoteExactOutput` run simulations via poolManager.unlock lines 31-88.
 - Internal `_quoteExactInput`, `_quoteExactOutput` and single-hop variants compute deltas lines 91-151.
+## Tier 2: Inferred Invariants
+
+### PositionDescriptor.sol
+- **`tokenURI`**
+  - `require(position exists && poolManager != address(0))`
+  - `assert(bytes(jsonURI).length > 0)`
+  - `assert(poolManager == Old(poolManager))`
+- **`flipRatio` and `currencyRatioPriority`**
+  - `require(currency0 != currency1)`
+  - `assert(returned ratio ordering stable)`
+- **Immutable Variables**
+  - `assert(poolManager != address(0))`
+  - `assert(wrappedNative != address(0))`
+
+### PositionManager.sol
+- **State Variables**
+  - `assert(nextTokenId == Old(nextTokenId) + 1)` when minting
+  - `assert(positionInfo[tokenId].owner == msg.sender)` after minting
+- **`_handleAction`**
+  - `require(valid action code)`
+  - `assert(positionInfo updated according to action)`
+- **Internal Liquidity Functions**
+  - `require(_isApprovedOrOwner(msg.sender, tokenId))`
+  - `assert(liquidity after == Old(liquidity) ± delta)`
+- **Settlement Helpers**
+  - `require(amounts >= 0)`
+  - `assert(token balances reflect settled amounts)`
+
+### UniswapV4DeployerCompetition.sol
+- **State Variables**
+  - `assert(competitionDeadline < exclusiveDeployDeadline)`
+- **`updateBestAddress`**
+  - `require(block.timestamp < competitionDeadline)`
+  - `assert(bestAddressSalt == candidateSalt || Old(bestAddressSalt) < candidateSalt)`
+- **`deploy`**
+  - `require(block.timestamp >= competitionDeadline)`
+  - `assert(deployedAddress == predictedAddress)`
+
+### V4Router.sol
+- **`_handleAction`**
+  - `require(actions.length > 0)`
+  - `assert(all actions executed)`
+- **Swap Helpers**
+  - `require(amountIn > 0)`
+  - `assert(amountOut >= 0)`
+- **`_swap`**
+  - `require(poolKey.valid)`
+  - `assert(delta balances consistent with swap)`
+
+### base/BaseActionsRouter.sol
+- **`_executeActions`**
+  - `assert(poolManager.unlock called once)`
+- **`_unlockCallback`**
+  - `require(msg.sender == poolManager)`
+  - `assert(actions decoded correctly)`
+- **Recipient Mapping**
+  - `require(recipient != address(0))`
+
+### base/BaseV4Quoter.sol
+- **Modifier `selfOnly`**
+  - `require(msg.sender == address(this))`
+- **`_unlockCallback`**
+  - `require(msg.sender == poolManager)`
+  - `assert(revert data bubbled)`
+- **`_swap`**
+  - `require(liquidity > 0)`
+  - `assert(returned delta != 0)`
+
+### base/DeltaResolver.sol
+- **`_take` and `_settle`**
+  - `require(available balance >= amount)`
+  - `assert(poolManager balances updated)`
+- **`_getFullDebt` and `_getFullCredit`**
+  - `assert(values reflect latest deltas)`
+- **`_mapWrapUnwrapAmount`**
+  - `require(amount > 0)`
+  - `assert(final balance >= 0)`
+
+### base/EIP712_v4.sol
+- **DOMAIN_SEPARATOR Components**
+  - `assert(chainId != 0)`
+- **`DOMAIN_SEPARATOR()` and `_hashTypedData`**
+  - `assert(hash != bytes32(0))`
+
+### base/ERC721Permit_v4.sol
+- **`permit` and `permitForAll`**
+  - `require(valid signature)`
+  - `assert(approval set)`
+- **Approval Helpers**
+  - `require(_isApprovedOrOwner(msg.sender, tokenId))`
+  - `assert(approval mappings updated)`
+
+### base/ImmutableState.sol
+- **Immutable `poolManager`**
+  - `assert(poolManager != address(0))`
+- **`onlyPoolManager`**
+  - `require(msg.sender == poolManager)`
+
+### base/Multicall_v4.sol
+- **`multicall`**
+  - `require(data.length > 0)`
+  - `assert(calls executed in order)`
+
+### base/NativeWrapper.sol
+- **Immutable `WETH9`**
+  - `assert(WETH9 != address(0))`
+- **`_wrap` and `_unwrap`**
+  - `require(amount > 0)`
+  - `assert(token balances changed by amount)`
+- **`receive`**
+  - `require(msg.sender == WETH9)`
+
+### base/Notifier.sol
+- **Subscriber Mapping**
+  - `assert(subscriber[tokenId] != address(0) || unsubscribed)`
+- **`subscribe` / `_unsubscribe`**
+  - `require(msg.sender == owner)`
+  - `assert(subscription state updated)`
+- **Notification Hooks**
+  - `require(gasleft() >= unsubscribeGasLimit)`
+  - `assert(callback executed or skipped)`
+
+### base/Permit2Forwarder.sol
+- **Immutable `permit2`**
+  - `assert(permit2 != address(0))`
+- **`permit` and `permitBatch`**
+  - `require(permitted signatures)`
+  - `assert(allowances set)`
+
+### base/PoolInitializer_v4.sol
+- **`initializePool`**
+  - `require(pool not initialized)`
+  - `assert(return tick != type(int24).max)`
+
+### base/ReentrancyLock.sol
+- **`isNotLocked`**
+  - `require(_getLocker() == address(0))`
+  - `assert(_getLocker() == address(0))` after
+- **`_getLocker`**
+  - `assert(return != address(0) || not locked)`
+
+### base/SafeCallback.sol
+- **`unlockCallback`**
+  - `require(msg.sender == poolManager)`
+  - `assert(_unlockCallback executed)`
+
+### base/UnorderedNonce.sol
+- **Nonce Mapping**
+  - `assert(!nonces[owner][nonce])`
+- **`_useUnorderedNonce`**
+  - `require(!nonces[owner][nonce])`
+  - `assert(nonces[owner][nonce])`
+- **`revokeNonce`**
+  - `require(msg.sender == owner)`
+  - `assert(nonces[owner][nonce])`
+
+### base/hooks/BaseTokenWrapperHook.sol
+- **Constructor**
+  - `require(currencyIn != currencyOut)`
+  - `assert(wrapZeroForOne == (currencyIn < currencyOut))`
+- **`_beforeInitialize`**
+  - `require(fee <= maxFee)`
+  - `assert(pool validated)`
+- **`_beforeSwap`**
+  - `require(amount > 0)`
+  - `assert(delta == deposit - withdraw)`
+- **`_deposit` / `_withdraw`**
+  - `require(amount > 0)`
+  - `assert(tokens moved correctly)`
+
+### hooks/WETHHook.sol
+- **`_deposit`**
+  - `require(msg.value >= amount)`
+  - `assert(WETH balance increased by amount)`
+- **`_withdraw`**
+  - `require(WETH balance >= amount)`
+  - `assert(ETH sent == amount)`
+
+### hooks/WstETHHook.sol
+- **Constructor**
+  - `require(address(wstETH) != address(0))`
+  - `assert(stETH allowance == type(uint256).max)`
+- **`_deposit`**
+  - `require(amount > 0)`
+  - `assert(wstETH minted >= amount)`
+- **`_withdraw`**
+  - `require(wstETH balance >= amount)`
+  - `assert(stETH received >= amount)`
+- **Exchange Rate Helpers**
+  - `assert(value derived from current rate)`
+
+### lens/StateView.sol
+- **Read Functions**
+  - `assert(no state changes)`
+
+### lens/V4Quoter.sol
+- **Quote Functions**
+  - `require(inputAmount > 0)`
+  - `assert(outputAmount >= 0)`
+- **Internal Quote Helpers**
+  - `assert(reverts capture gas estimate)`
+
