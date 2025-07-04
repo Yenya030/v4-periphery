@@ -119,3 +119,123 @@
 > - **Relevant Code Snippet(s):**
 > *(No direct voting mechanism identified in the current codebase. However, if hooks or external subscribers were granted voting privileges via callbacks, flash loans might be used to manipulate decisions.)*
 >
+**Potential Issue Found:**
+- **Matching Subcategory:** Non-AMM Price Oracle Manipulation
+- **Relevant Code Snippet(s):**
+```solidity
+function _getWrapInputRequired(uint256 wrappedAmount) internal view override returns (uint256) {
+    return wrappedAmount.divWadUp(wstETH.tokensPerStEth());
+}
+function _getUnwrapInputRequired(uint256 underlyingAmount) internal view override returns (uint256) {
+    return wstETH.getWstETHByStETH(underlyingAmount);
+}
+```
+- **Reasoning:** The wrapping and unwrapping logic in `WstETHHook` relies on external exchange-rate functions (`tokensPerStEth`, `getWstETHByStETH`). If these rates are manipulated or stale, the contract may settle incorrect amounts during swaps.
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Unauthorized Transfer
+- **Relevant Code Snippet(s):**
+```solidity
+receive() external payable {
+    if (msg.sender != address(WETH9) && msg.sender != address(poolManager)) revert InvalidEthSender();
+}
+```
+- **Reasoning:** `NativeWrapper` only rejects unexpected senders in its `receive` function, but ETH can still be forcibly sent via `selfdestruct`, bypassing this check. This may lead to unauthorized ETH balances within the contract.
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Wrong Checkpoint Order
+- **Relevant Code Snippet(s):**
+```solidity
+function _settle(Currency currency, address payer, uint256 amount) internal {
+    if (amount == 0) return;
+
+    poolManager.sync(currency);
+    if (currency.isAddressZero()) {
+        poolManager.settle{value: amount}();
+    } else {
+        _pay(currency, payer, amount);
+        poolManager.settle();
+    }
+}
+```
+- **Reasoning:** `_settle` calls `poolManager.sync` before tokens are transferred via `_pay`. If token transfers occur after the sync but before `settle`, the recorded reserves may not accurately reflect the new balance, potentially leading to incorrect settlement amounts.
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Improper Handling of the Deposit Fee
+- **Relevant Code Snippet(s):**
+```solidity
+wrappedAmount = wstETH.wrap(actualUnderlyingAmount);
+_settle(wrapperCurrency, address(this), wrappedAmount);
+```
+- **Reasoning:** `WstETHHook` wraps the entire underlying amount but does not account for potential rounding or fee mechanisms in the wrapper token. Small discrepancies could accumulate, leaving residual balances or unfairly altering swap deltas.
+**Potential Issue Found:**
+- **Matching Subcategory:** AMM Price Oracle Manipulation
+- **Relevant Code Snippet(s):**
+```solidity
+(uint160 sqrtPriceX96,,,) = poolManager.getSlot0(poolKey.toId());
+liquidity = LiquidityAmounts.getLiquidityForAmounts(
+    sqrtPriceX96,
+    TickMath.getSqrtPriceAtTick(info.tickLower()),
+    TickMath.getSqrtPriceAtTick(info.tickUpper()),
+    _getFullCredit(poolKey.currency0),
+    _getFullCredit(poolKey.currency1)
+);
+```
+*Source: `src/PositionManager.sol` lines 312-321*
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Non-AMM Price Oracle Manipulation
+- **Relevant Code Snippet(s):**
+```solidity
+return wrappedAmount.divWadUp(wstETH.tokensPerStEth());
+...
+return wstETH.getWstETHByStETH(underlyingAmount);
+```
+*Source: `src/hooks/WstETHHook.sol` lines 70-80*
+
+**Potential Issue Found:**
+- **Matching Subcategory:** AMM Price Oracle Manipulation
+- **Relevant Code Snippet(s):**
+```solidity
+BalanceDelta delta = poolManager.swap(
+    poolKey,
+    SwapParams(
+        zeroForOne, amountSpecified, zeroForOne ? TickMath.MIN_SQRT_PRICE + 1 : TickMath.MAX_SQRT_PRICE - 1
+    ),
+    hookData
+);
+```
+*Source: `src/V4Router.sol` lines 160-168*
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Non-AMM Price Oracle Manipulation
+- **Relevant Code Snippet(s):**
+```solidity
+function _getWrapInputRequired(uint256 wrappedAmount) internal view override returns (uint256) {
+    return wrappedAmount.divWadUp(wstETH.tokensPerStEth());
+}
+function _getUnwrapInputRequired(uint256 underlyingAmount) internal view override returns (uint256) {
+    return wstETH.getWstETHByStETH(underlyingAmount);
+}
+```
+This code uses dynamic conversion rates from the wstETH contract. A malicious actor could manipulate these rates via large temporary deposits or withdrawals.
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Unauthorized Transfer
+- **Relevant Code Snippet(s):**
+```solidity
+receive() external payable {
+    if (msg.sender != address(WETH9) && msg.sender != address(poolManager)) revert InvalidEthSender();
+}
+```
+Ether can be forced to this contract via `selfdestruct`, bypassing the sender check and potentially breaking accounting assumptions.
+
+**Potential Issue Found:**
+- **Matching Subcategory:** Wrong Interest Rate Order
+- **Relevant Code Snippet(s):**
+```solidity
+uint256 inputAmount =
+    isExactInput ? uint256(-params.amountSpecified) : _getWrapInputRequired(uint256(params.amountSpecified));
+(uint256 actualUnderlyingAmount, uint256 wrappedAmount) = _deposit(inputAmount);
+```
+The required amount is computed before executing the deposit. Sudden changes in the exchange rate between calls may result in incorrect amounts being wrapped or unwrapped.
