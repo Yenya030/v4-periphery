@@ -373,3 +373,32 @@ Provides external quote functions that simulate swaps through PoolManager and re
 - **Internal Quote Helpers**
   - `assert(reverts capture gas estimate)`
 
+
+## Tier 3: Vulnerability Report & Exploits
+
+### Vulnerability: Forced Ether Injection
+**Violated Invariant:** `receive` requires `msg.sender == WETH9` in `NativeWrapper.sol`.
+**Attack Path:** An attacker deploys a temporary contract holding ETH and invokes `selfdestruct(target)` with `target` set to the wrapper contract. The forced transfer bypasses the `receive` check because `selfdestruct` does not trigger the `receive` function. The wrapper's ETH balance becomes larger than expected without passing through `_wrap`, breaking assumptions about token balance changes.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+contract ForceSend {
+    function attack(address target) external payable {
+        selfdestruct(payable(target));
+    }
+}
+```
+
+### Vulnerability: Flash Loan Rate Manipulation
+**Violated Invariant:** `_deposit` in `WstETHHook.sol` asserts `wstETH minted >= amount`.
+**Attack Path:** Using flash loans, an attacker rapidly mints or burns wstETH around a call to `_beforeSwap` so the exchange rate changes between the deposit and settle steps. The wrapper receives fewer wstETH than expected, violating the invariant that the minted amount covers the deposit.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+function testManipulateRate() public {
+    // borrow large stETH, wrap to wstETH altering exchange rate
+    flashLoan(stETH, hugeAmount);
+    wstETH.wrap(hugeAmount);
+    // call hook during manipulated rate window
+    vm.prank(attacker);
+    hook.beforeSwap(...);
+}
+```
