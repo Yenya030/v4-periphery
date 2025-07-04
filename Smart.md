@@ -373,3 +373,38 @@ Provides external quote functions that simulate swaps through PoolManager and re
 - **Internal Quote Helpers**
   - `assert(reverts capture gas estimate)`
 
+
+## Tier 3: Vulnerability Report & Exploits
+
+### Vulnerability: Pool Reinitialization Bypass
+**Violated Invariant:** `initializePool` should require the pool is not already initialized and assert the returned tick is not `type(int24).max`.
+**Attack Path:**
+1. Initialize a new pool normally.
+2. Call `initializePool` again with the same `PoolKey`.
+3. The internal `poolManager.initialize` reverts and the catch block returns `type(int24).max`.
+4. The invariant expecting a non‐sentinel tick is violated.
+**PoC Sketch (Foundry):**
+```solidity
+function test_reinitPool() public {
+    poolInitializer.initializePool(key, price); // first init succeeds
+    int24 result = poolInitializer.initializePool(key, price); // second init
+    assertEq(result, type(int24).max); // invariant broken
+}
+```
+
+### Vulnerability: Forced Ether Injection via Selfdestruct
+**Violated Invariant:** `NativeWrapper.receive` enforces `msg.sender == WETH9`.
+**Attack Path:**
+1. Deploy a helper contract holding ETH.
+2. Selfdestruct the helper with `selfdestruct(nativeWrapperAddr)`.
+3. ETH is forcibly sent without invoking `receive`, bypassing the sender check.
+4. The NativeWrapper now holds ETH from an unauthorized source, violating the invariant.
+**PoC Sketch (Foundry):**
+```solidity
+contract ForceSend {
+    constructor() payable {}
+    function attack(address target) external {
+        selfdestruct(payable(target));
+    }
+}
+```
