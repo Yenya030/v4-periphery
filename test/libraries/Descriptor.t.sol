@@ -55,6 +55,14 @@ contract DescriptorTest is Test {
         assertEq(Descriptor.escapeSpecialCharacters("a\u000cbc"), "a\\\u000cbc");
     }
 
+    function test_escapeSpecialCharacters_backslash_expectedEscape() public pure {
+        assertEq(Descriptor.escapeSpecialCharacters("a\\bc"), "a\\\\bc");
+    }
+
+    function test_escapeSpecialCharacters_forwardSlash_expectedEscape() public pure {
+        assertEq(Descriptor.escapeSpecialCharacters("a/bc"), "a\\/bc");
+    }
+
     function test_tickToDecimalString_withTickSpacing10() public pure {
         int24 tickSpacing = 10;
         int24 minTick = (TickMath.MIN_TICK / tickSpacing) * tickSpacing;
